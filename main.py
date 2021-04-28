@@ -1,4 +1,5 @@
 import os
+from time import sleep
 
 import requests
 from dotenv import load_dotenv
@@ -32,6 +33,9 @@ def check_verified_work(dvmn_token):
         except requests.exceptions.ReadTimeout:
             print('timeout')
             continue
+        except requests.ConnectionError:
+            print('ConnectionError')
+            sleep(60)
 
 
 def main():
