@@ -1,9 +1,10 @@
 import os
 from time import sleep
+from urllib.parse import urljoin
 
 import requests
-from dotenv import load_dotenv
 import telegram
+from dotenv import load_dotenv
 
 
 def get_response(url, params=None, headers=None):
@@ -33,11 +34,13 @@ def check_verified_work(dvmn_token, tg_token, tg_chat_id):
 
                 for work in verified_works:
                     is_negative = work['is_negative']
-                    lesson_title = work["lesson_title"]
+                    lesson_title = work['lesson_title']
+                    lesson_path = work['lesson_url']
                     send_tg_message(tg_token,
                                     tg_chat_id,
                                     is_negative,
-                                    lesson_title)
+                                    lesson_title,
+                                    lesson_path)
             elif status == 'timeout':
                 params['timestamp'] = response_detail['timestamp_to_request']
         except requests.exceptions.ReadTimeout:
@@ -48,27 +51,37 @@ def check_verified_work(dvmn_token, tg_token, tg_chat_id):
             sleep(60)
 
 
-def send_tg_message(tg_token, tg_chat_id, is_negative, lesson_title):
+def send_tg_message(tg_token, tg_chat_id, is_negative, lesson_title, lesson_path):
     bot = telegram.Bot(token=tg_token)
+    base_url = 'https://dvmn.org/modules/'
+    lesson_url = urljoin(base_url, lesson_path)
     if is_negative:
-        bot.send_message(chat_id=tg_chat_id,
-                         text=f'У вас проверили работу "{lesson_title}"\n'
-                              'К сожалению, в работе нашлись ошибки.')
+        bot.send_message(
+            chat_id=tg_chat_id,
+            text=f'У вас проверили работу ["{lesson_title}"]({lesson_url})\n'
+                 'К сожалению, в работе нашлись ошибки\.',
+            parse_mode='MarkdownV2',
+            disable_web_page_preview=True
+        )
     else:
-        bot.send_message(chat_id=tg_chat_id,
-                         text=f'У вас проверили работу "{lesson_title}"\n'
-                              'Преподавателю всё понравилось, можно '
-                              'приступать к следующему уроку!')
+        bot.send_message(
+            chat_id=tg_chat_id,
+            text=f'У вас проверили работу ["{lesson_title}"]({lesson_url})\n'
+                 'Преподавателю всё понравилось, '
+                 'можно приступать к следующему уроку\!',
+            parse_mode='MarkdownV2',
+            disable_web_page_preview=True
+        )
 
 
 def main():
     load_dotenv()
     dvmn_token = os.getenv('DEVMAN_TOKEN')
     tg_token = os.getenv('TG_NOTIFY_BOT_TOKEN')
-
-    tg_chat_id = os.getenv('MY_ID')
+    tg_chat_id = os.getenv('TG_CHAT_ID')
 
     check_verified_work(dvmn_token, tg_token, tg_chat_id)
+
 
 if __name__ == '__main__':
     main()
