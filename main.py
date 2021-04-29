@@ -3,6 +3,7 @@ from time import sleep
 
 import requests
 from dotenv import load_dotenv
+import telegram
 
 
 def get_response(url, params=None, headers=None):
@@ -41,9 +42,14 @@ def check_verified_work(dvmn_token):
 def main():
     load_dotenv()
     dvmn_token = os.getenv('DEVMAN_TOKEN')
+    tg_token = os.getenv('TG_NOTIFY_BOT_TOKEN')
 
-    check_verified_work(dvmn_token)
+    chat_id = os.getenv('MY_ID')
 
+    # check_verified_work(dvmn_token)
+
+    bot = telegram.Bot(token=tg_token)
+    bot.send_message(chat_id=chat_id, text="Привет")
 
 if __name__ == '__main__':
     main()
