@@ -12,7 +12,7 @@ def get_response(url, params=None, headers=None):
     return response
 
 
-def check_verified_work(dvmn_token):
+def check_verified_work(dvmn_token, tg_token, tg_chat_id):
     dvmn_api_url = 'https://dvmn.org/api/long_polling/'
     headers = {
         'Authorization': f'Token {dvmn_token}',
@@ -28,6 +28,7 @@ def check_verified_work(dvmn_token):
             print(response_detail)
             status = response_detail['status']
             if status == 'found':
+                send_tg_message(tg_token, tg_chat_id)
                 params['timestamp'] = response_detail['last_attempt_timestamp']
             elif status == 'timeout':
                 params['timestamp'] = response_detail['timestamp_to_request']
@@ -39,17 +40,19 @@ def check_verified_work(dvmn_token):
             sleep(60)
 
 
+def send_tg_message(tg_token, tg_chat_id):
+    bot = telegram.Bot(token=tg_token)
+    bot.send_message(chat_id=tg_chat_id, text="Преподаватель проверил работу!")
+
+
 def main():
     load_dotenv()
     dvmn_token = os.getenv('DEVMAN_TOKEN')
     tg_token = os.getenv('TG_NOTIFY_BOT_TOKEN')
 
-    chat_id = os.getenv('MY_ID')
+    tg_chat_id = os.getenv('MY_ID')
 
-    # check_verified_work(dvmn_token)
-
-    bot = telegram.Bot(token=tg_token)
-    bot.send_message(chat_id=chat_id, text="Привет")
+    check_verified_work(dvmn_token, tg_token, tg_chat_id)
 
 if __name__ == '__main__':
     main()
