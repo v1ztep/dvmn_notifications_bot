@@ -13,7 +13,7 @@ def get_response(url, params=None, headers=None):
     return response
 
 
-def check_verified_work(dvmn_token, tg_token, tg_chat_id):
+def check_verified_work(dvmn_token, tg_chat_id, bot):
     dvmn_api_url = 'https://dvmn.org/api/long_polling/'
     headers = {
         'Authorization': f'Token {dvmn_token}',
@@ -26,7 +26,6 @@ def check_verified_work(dvmn_token, tg_token, tg_chat_id):
         try:
             response = get_response(dvmn_api_url, headers=headers, params=params)
             response_detail = response.json()
-            print(response_detail) #убрать<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
             status = response_detail['status']
             if status == 'found':
                 params['timestamp'] = response_detail['last_attempt_timestamp']
@@ -36,7 +35,7 @@ def check_verified_work(dvmn_token, tg_token, tg_chat_id):
                     is_negative = work['is_negative']
                     lesson_title = work['lesson_title']
                     lesson_path = work['lesson_url']
-                    send_tg_message(tg_token,
+                    send_tg_message(bot,
                                     tg_chat_id,
                                     is_negative,
                                     lesson_title,
@@ -51,27 +50,22 @@ def check_verified_work(dvmn_token, tg_token, tg_chat_id):
             sleep(60)
 
 
-def send_tg_message(tg_token, tg_chat_id, is_negative, lesson_title, lesson_path):
-    bot = telegram.Bot(token=tg_token)
+def send_tg_message(bot, tg_chat_id, is_negative, lesson_title, lesson_path):
     base_url = 'https://dvmn.org/modules/'
     lesson_url = urljoin(base_url, lesson_path)
     if is_negative:
-        bot.send_message(
-            chat_id=tg_chat_id,
-            text=f'У вас проверили работу ["{lesson_title}"]({lesson_url})\n'
-                 'К сожалению, в работе нашлись ошибки\.',
-            parse_mode='MarkdownV2',
-            disable_web_page_preview=True
-        )
+        text = f'У вас проверили работу ["{lesson_title}"]({lesson_url})\n' \
+               'К сожалению, в работе нашлись ошибки\.'
     else:
-        bot.send_message(
-            chat_id=tg_chat_id,
-            text=f'У вас проверили работу ["{lesson_title}"]({lesson_url})\n'
-                 'Преподавателю всё понравилось, '
-                 'можно приступать к следующему уроку\!',
-            parse_mode='MarkdownV2',
-            disable_web_page_preview=True
-        )
+        text = f'У вас проверили работу ["{lesson_title}"]({lesson_url})\n' \
+               'Преподавателю всё понравилось, ' \
+               'можно приступать к следующему уроку\!'
+    bot.send_message(
+        chat_id=tg_chat_id,
+        text=text,
+        parse_mode='MarkdownV2',
+        disable_web_page_preview=True
+    )
 
 
 def main():
@@ -79,8 +73,9 @@ def main():
     dvmn_token = os.getenv('DEVMAN_TOKEN')
     tg_token = os.getenv('TG_NOTIFY_BOT_TOKEN')
     tg_chat_id = os.getenv('TG_CHAT_ID')
+    bot = telegram.Bot(token=tg_token)
 
-    check_verified_work(dvmn_token, tg_token, tg_chat_id)
+    check_verified_work(dvmn_token, tg_chat_id, bot)
 
 
 if __name__ == '__main__':
