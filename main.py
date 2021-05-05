@@ -1,3 +1,4 @@
+import logging
 import os
 from time import sleep
 from urllib.parse import urljoin
@@ -44,7 +45,6 @@ def check_verified_work(dvmn_token, tg_chat_id, bot):
                 params['timestamp'] = response_detail['timestamp_to_request']
         except requests.exceptions.ReadTimeout:
             print('timeout')
-            continue
         except requests.ConnectionError:
             print('ConnectionError')
             sleep(60)
@@ -69,6 +69,7 @@ def send_tg_message(bot, tg_chat_id, is_negative, lesson_title, lesson_path):
 
 
 def main():
+    logging.warning('Бот запущен')
     load_dotenv()
     dvmn_token = os.getenv('DEVMAN_TOKEN')
     tg_token = os.getenv('TG_NOTIFY_BOT_TOKEN')
