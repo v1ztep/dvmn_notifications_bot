@@ -8,13 +8,24 @@ import telegram
 from dotenv import load_dotenv
 
 
+class MyLogsHandler(logging.Handler):
+    def __init__(self, bot, tg_chat_id):
+        super().__init__()
+        self.bot = bot
+        self.tg_chat_id = tg_chat_id
+
+    def emit(self, record):
+        log_entry = self.format(record)
+        self.bot.send_message(chat_id=self.tg_chat_id, text=log_entry)
+
+
 def get_response(url, params=None, headers=None):
     response = requests.get(url, params=params, headers=headers)
     response.raise_for_status()
     return response
 
 
-def check_verified_work(dvmn_token, tg_chat_id, bot):
+def check_verified_work(dvmn_token, tg_chat_id, bot, logger):
     dvmn_api_url = 'https://dvmn.org/api/long_polling/'
     headers = {
         'Authorization': f'Token {dvmn_token}',
@@ -44,9 +55,9 @@ def check_verified_work(dvmn_token, tg_chat_id, bot):
             elif status == 'timeout':
                 params['timestamp'] = response_detail['timestamp_to_request']
         except requests.exceptions.ReadTimeout:
-            print('timeout')
+            continue
         except requests.ConnectionError:
-            print('ConnectionError')
+            logger.error("ConnectionError")
             sleep(60)
 
 
@@ -69,14 +80,18 @@ def send_tg_message(bot, tg_chat_id, is_negative, lesson_title, lesson_path):
 
 
 def main():
-    logging.warning('Бот запущен')
     load_dotenv()
     dvmn_token = os.getenv('DEVMAN_TOKEN')
     tg_token = os.getenv('TG_NOTIFY_BOT_TOKEN')
     tg_chat_id = os.getenv('TG_CHAT_ID')
     bot = telegram.Bot(token=tg_token)
 
-    check_verified_work(dvmn_token, tg_chat_id, bot)
+    logger = logging.getLogger("Devman notify logger")
+    logger.setLevel(logging.INFO)
+    logger.addHandler(MyLogsHandler(bot, tg_chat_id))
+
+    logger.info('Бот запущен')
+    check_verified_work(dvmn_token, tg_chat_id, bot, logger)
 
 
 if __name__ == '__main__':
