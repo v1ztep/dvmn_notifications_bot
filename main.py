@@ -60,7 +60,7 @@ def check_verified_work(dvmn_token, tg_chat_id, bot, logger):
             logger.error('ConnectionError')
             sleep(60)
         except requests.HTTPError as err:
-            logger.error('dvmn.org Server Error\n'
+            logger.error('dvmn API Server Error\n'
                          f'Ошибка: {err}')
             sleep(10)
 
