@@ -54,15 +54,9 @@ def check_verified_work(dvmn_token, tg_chat_id, bot, logger):
                                     lesson_path)
             elif status == 'timeout':
                 params['timestamp'] = response_detail['timestamp_to_request']
-        except requests.exceptions.ReadTimeout:
-            logger.error('ReadTimeout')
-        except requests.exceptions.ConnectionError:
-            logger.error('ConnectionError')
-            sleep(60)
-        except requests.exceptions.HTTPError as err:
-            logger.error('dvmn API Server Error\n'
-                         f'Ошибка: {err}')
-            sleep(10)
+        except Exception:
+            logger.exception(msg='Бот упал с ошибкой:')
+            sleep(30)
 
 
 def send_tg_message(bot, tg_chat_id, is_negative, lesson_title, lesson_path):
@@ -93,7 +87,6 @@ def main():
     logger = logging.getLogger('Devman notify logger')
     logger.setLevel(logging.INFO)
     logger.addHandler(MyLogsHandler(bot, tg_chat_id))
-
     logger.info('Бот запущен')
     check_verified_work(dvmn_token, tg_chat_id, bot, logger)
 
