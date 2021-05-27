@@ -59,6 +59,9 @@ def check_verified_work(dvmn_token, tg_chat_id, bot, logger):
         except requests.ConnectionError:
             logger.error('ConnectionError')
             sleep(60)
+        except requests.exceptions.HTTPError:
+            logger.error('dvmn.org Server Error')
+            sleep(10)
 
 
 def send_tg_message(bot, tg_chat_id, is_negative, lesson_title, lesson_path):
