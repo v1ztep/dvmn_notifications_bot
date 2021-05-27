@@ -55,7 +55,7 @@ def check_verified_work(dvmn_token, tg_chat_id, bot, logger):
             elif status == 'timeout':
                 params['timestamp'] = response_detail['timestamp_to_request']
         except requests.exceptions.ReadTimeout:
-            continue
+            logger.error("ReadTimeout")
         except requests.ConnectionError:
             logger.error("ConnectionError")
             sleep(60)
