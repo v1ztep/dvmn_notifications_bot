@@ -55,9 +55,9 @@ def check_verified_work(dvmn_token, tg_chat_id, bot, logger):
             elif status == 'timeout':
                 params['timestamp'] = response_detail['timestamp_to_request']
         except requests.exceptions.ReadTimeout:
-            logger.error("ReadTimeout")
+            logger.error('ReadTimeout')
         except requests.ConnectionError:
-            logger.error("ConnectionError")
+            logger.error('ConnectionError')
             sleep(60)
 
 
@@ -86,7 +86,7 @@ def main():
     tg_chat_id = os.getenv('TG_CHAT_ID')
     bot = telegram.Bot(token=tg_token)
 
-    logger = logging.getLogger("Devman notify logger")
+    logger = logging.getLogger('Devman notify logger')
     logger.setLevel(logging.INFO)
     logger.addHandler(MyLogsHandler(bot, tg_chat_id))
 
